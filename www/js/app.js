@@ -3,12 +3,40 @@ $(document).ready(function(){
 });
 
 function onDeviceReady(){
-    var channel = 'TechGuyWeb';
+
+   // Check LocalStorage for channel
+	if(localStorage.channel == null || localStorage.channel == ''){
+		// Ask User for Channel
+		$('#popupDialog').popup("open");
+	} else {
+		var channel = localStorage.getItem('channel');
+	}
 
     getPlaylist(channel);
 
     $(document).on('click', '#vidlist li', function(){
         showVideo($(this).attr('videoid'));
+    });
+
+    $('#channelBtnOK').click(function(){
+       var channel = $('#channelName').val();
+       setChannel(channel);
+       getPlaylist(channel);
+    });
+
+    $('#saveOptions').click(function(){
+        saveOptions();
+    });
+
+    $('#clearChannel').click(function(){
+        clearChannel();
+    });
+
+    $(document).on('pageinit', '#options', function(e){
+        var channel = localStorage.getItem('channel');
+        var maxResults= localStorage.getItem('maxresults');
+        $('#channelNameOptions').attr('value', channel);
+        $('#maxResultsOptions').attr('value', maxResults);
     });
 }
 
@@ -25,7 +53,7 @@ function getPlaylist(channel){
             $.each(data.items, function(i, item){
                 console.log(item);
                 playlistId = item.contentDetails.relatedPlaylists.uploads;
-                getVideos(playlistId, 10);
+                getVideos(playlistId, localStorage.getItem('maxresults'));
             });
         }
     );
@@ -59,8 +87,34 @@ function showVideo(id){
     $('#showVideo').html(output);
 }
 
+function setChannel(channel){
+    localStorage.setItem('channel', channel);
+    console.log('Channel Set '+ channel);
+}
+
+function setMaxResults(maxResults){
+    localStorage.setItem('maxresults', maxResults);
+    console.log('Max Results Changed '+ maxResults);
+}
+
+function saveOptions(){
+    var channel = $('#channelNameOptions').val();
+    setChannel(channel);
+    var maxResults = $('#maxResultsOptions').val();
+    setMaxResults(maxResults);
+    $('body').pagecontainer('change', '#main',{options});
+    getPlaylist(channel);
+}
 
 
+function clearChannel(){
+    localStorage.removeItem('channel');
+    $('body').pagecontainer('change', '#main',{options});
+    //Clear list
+    $('#vidlist').html('');
+    //Show Popup
+    $('#popupDialog').popup('open');
+}
 
 
 
